@@ -1,0 +1,163 @@
+---
+title: "mpg - wad"
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+
+
+
+```{r}
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+```
+ 
+ 
+
+```{r}
+head(mpg)
+```
+
+
+
+```{r}
+#mpg %>%
+#  mutate(trans2=str_sub(trans,1,4)) %>%
+#  view(mpg)
+
+dt1 <- mpg %>%
+  mutate(trans2=word(trans,1,sep = fixed("("))) %>%
+  select(cty,hwy,trans2) %>%
+  as.data.frame()
+```
+
+
+
+```{r}
+#statystyki opisowe; średnia i odchylenie standardowe
+dt1 %>%
+  group_by(trans2) %>%
+  summarise_at(vars(cty,hwy), list(~mean(.),~sd(.)))
+```
+
+
+```{r}
+dt1 %>%
+  ggboxplot(x="trans2",
+            y=c("cty","hwy"),
+            add="jitter",
+            merge = T,
+            palette = "aaas")
+```
+
+## Sprawdzenie założeń
+
+Normalność wielowymiarowa w podgrupach 
+war
+
+
+```{r}
+dt1 %>%
+  group_split(trans2, keep=F) %>%
+  map(~mshapiro_test(.x))
+```
+
+Brak wielowym normalności w obu grupach.
+
+
+```{r}
+library(car)
+summary(powerTransform(cbind(cty,hwy)~1,family = "bcPower", data=dt1 ))
+
+dt2 <- dt1 %>%
+  mutate(cty2=log(cty), hwy2=sqrt(hwy)) %>%
+  as.data.frame()
+
+```
+
+
+```{r}
+dt2 %>%
+  ggdensity(x=c("cty","hwy"), combine = T, fill = "trans2", alpha = 0.2)
+
+dt2 %>%
+  ggdensity(x=c("cty2","hwy2"), combine = T, fill = "trans2", alpha = 0.2, scales="free")
+```
+
+
+Spr czy po trans jest norm
+
+
+```{r}
+dt2 %>%
+  group_split(trans2, keep=F) %>%
+  map(~mshapiro_test(.x))
+```
+
+
+wykr kwantylowy
+
+
+```{r}
+ggqqplot(dt2, x=c("cty2","hwy2"), combine = T, color = "trans2")
+```
+
+
+### Badanie jednorodnosci kowariancji
+
+
+```{r}
+box_m(dt2[,4:5],dt2[,3])
+```
+
+Jest spełnione zał o jedn wariancji
+
+Jeśli próba jest dostatecznie duża (ta ma 232), to centralne tw graniczne nam zapewni to, ze nawet jesli oryginalne dane nie sa z rozkl norm, a po transformacji są to nadal jest ok dla dużej próby.
+
+
+```{r}
+library(Hotelling)
+wynikth <- hotelling.test(cbind(cty2,hwy2)~trans2, 
+               data = dt2)
+```
+
+
+Odrzucamy hipotezę o równości wektorów średnich w obu grupach
+
+### Testy posthoc
+
+
+```{r}
+dt2 %>%
+  pivot_longer(cols = cty2:hwy2) %>%
+  group_by(name) %>%
+  levene_test(value~trans2)
+```
+
+
+
+W przypadku obu zmiennych zależnych występuje jednorodność wariancji. Można testować testem tstudenta z varequal równym T, p.adjust.method bo robimy porownania wielokrotne.
+
+
+```{r}
+dt2 %>%
+  pivot_longer(cols = cty2:hwy2) %>%
+  group_by(name) %>%
+  t_test(value~trans2,
+         data=.,
+         var.equal = T,
+         p.adjust.method = "bonferroni")
+```
+
