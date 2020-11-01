@@ -9,3 +9,13 @@
 - sprawdzenie założeń modelu;
 - badanie jednorodności kowariancji
 - testy posthoc
+
+
+## PE z biblioteką survey
+### pliki:
+- PE_survey.pdf
+- PE_survey.Rmd
+### zawartość:
+- metoda przedziałowa oszacowania parametru EX
+- statystyki opisowe
+- funkcja licząca przedział ufności dla frakcji
