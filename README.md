@@ -1,4 +1,4 @@
-# AnalizaDanych
+# Skrótowy opis zadań
 
 ## Analiza danych mpg
 ### pliki:
