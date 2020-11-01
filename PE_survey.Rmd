@@ -1,0 +1,147 @@
+---
+title: "Zadania z planowania eksperymentu"
+author: "Agnieszka Wrzos"
+date: "25-03-2020"
+output:
+  pdf_document: default
+  html_document: default
+subtitle: 'biblioteka: survey'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+## Zadanie 1
+
+Wczytaj bibliotekę `survey`, następnie komendą `data(api)` wywołaj listę zbiorów dotyczących szkół w Kaliforni. Będzie to kilka zbiorów, a Ciebie będą interesować głównie dwa: `apisrs` oraz `apipop`. Pierwszy jest próbką 200 elementową populacji `apipop`. Na podsatwie próby oszacuj metodą przedziałową nieznany parametr wartości oczekiwanej zmiennej `enroll` na poziomie ufności 0.99. Sprawdź, czy nieznany parametr (dla Ciebie znany, bo może być wyznaczony na podstawie populacji) należy do przedziału ufności. Narysuj wykres rozkładu zmiennej `enroll` w próbie oraz oceń podstawowe statystki opisowe.
+
+## Zadanie 2
+
+Z wczytanego wcześniej zbioru `apipop` wylosuj 100 próbek o liczebności 36 elementów każda. Następnie napisz funkcję, która będzie liczyła przedział ufności dla frakcji. Zastosuj tą funkcję do zmiennej `sch.wide` mówiącej o tym czy szkoła wypełniła założone przez państwo wymagania dotyczące rozwoju uczniów (kod "Yes"). Sprawdź ile spośród wyznaczonych w ten sposób przedziałów ufności zwierało prawdziwą proporcję szkół spełniających wymagania w populacji. 
+
+# Rozwiązanie
+
+## Zadanie 1
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(survey)
+data(api)
+```
+
+### Przedziały ufności
+
+```{r}
+n <- nrow(apisrs)
+np <- nrow(apipop)
+srs_d <- svydesign(ids = ~1,fpc = ~fpc,data = apisrs )
+```
+
+Zmienna fpc mówi, że mamy 6194 szkół w Kaliforni. Zmienna `srs_d` zawiera podstawowe informacje o ankiecie. 
+
+```{r}
+summary(srs_d)
+srednia <- svymean(~enroll, srs_d)
+liczebnosc <- svytotal(~enroll, srs_d) 
+srednia
+liczebnosc
+```
+
+`srednia` i `liczebnosc` są to wyestymowane średnia i liczebność całej populacji. SE jest błędem standardowym.
+
+
+```{r}
+any(is.na(apipop))
+sredniapop <- mean(apipop$enroll, na.rm=T)
+sredniapop
+```
+
+```{r}
+q <- qnorm(0.99)
+sd <- sd(apisrs$enroll, na.rm = T)
+sr <- as.vector(srednia)
+lp <- sr-q*sqrt(1-(n/np))*(sd/sqrt(n))
+pp <- sr+q*sqrt(1-(n/np))*(sd/sqrt(n))
+lp
+pp
+```
+
+Przedział ufności: (521, 648). 
+
+Średnia mieści się w przedziale ufności.
+
+### boxplot rozkładu enroll ze wzgęldu na typ szkoły
+
+```{r}
+svyboxplot(enroll~stype,srs_d) 
+```
+
+Średnie uczniów w każdym typie szkoły się różnią.
+
+### Statystyki opisowe dla `enroll`  w próbie
+
+```{r}
+min <- min(apisrs$enroll, na.rm=T)
+max <- max(apisrs$enroll, na.rm=T)
+```
+
+
+```{r}
+srednia
+sd
+min
+max
+n
+```
+
+
+
+## Zadanie 2
+
+
+### 100 próbek o liczebności 36 elementów każda
+
+```{r}
+apipop$sch.wide <- as.numeric(apipop$sch.wide)-1
+
+set.seed(2020)
+probki <- 1:100 %>%
+  map(~sample_n(apipop, size=36))
+```
+
+### funkcja licząca przedział ufności dla frakcji
+
+```{r}
+przedzialyufnosci <- function(x, alpha=0.05) {
+q <- qnorm(1-alpha)
+sd1 <- sd(x, na.rm=T)
+sred <- mean(x, na.rm=T)
+l <- sred-q*sqrt(1-36/6157)*(sd1/sqrt(36))
+p <- sred+q*sqrt(1-36/6157)*(sd1/sqrt(36))
+return( c(l, p, sred))
+}
+```
+
+### czy szkoła wypełniła założone przez państwo wymagania dotyczące rozwoju uczniów 
+
+```{r}
+wynik <- probki %>%
+  map(~przedzialyufnosci(.x$sch.wide, alpha=0.01))
+wynik
+sredniapop_sw <- mean(apipop$sch.wide)
+test <- wynik %>%
+  map_dbl(~{ifelse(.x[1]<sredniapop_sw & .x[2]>sredniapop_sw,1,0)}) %>%
+  sum()
+test
+```
+
+
+W 95 przypakach przedział ufności zawiera średnią dla populacji. 
