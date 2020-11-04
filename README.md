@@ -10,6 +10,14 @@
 - badanie jednorodności kowariancji
 - testy posthoc
 
+## Analiza danych PCA
+### pliki:
+- Zadanie_pca.pdf
+- Zadanie_pca.Rmd
+### zawartość:
+- regresja wielokrotna
+- wyznaczanie indeksów
+
 
 ## PE z biblioteką survey
 ### pliki:
@@ -19,3 +27,4 @@
 - metoda przedziałowa oszacowania parametru EX
 - statystyki opisowe
 - funkcja licząca przedział ufności dla frakcji
+
