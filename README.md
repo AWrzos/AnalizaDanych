@@ -28,3 +28,14 @@
 - statystyki opisowe
 - funkcja licząca przedział ufności dla frakcji
 
+## PE apistrat
+### pliki:
+- pe_apistrat.pdf
+- pe_apistrat.Rmd
+### zawartość:
+- analiza średniej wyników
+- estymacja ilorazowa
+- ocena obciążenia estymatorów, błędy standardowe estymacji
+- graficznie przedstawiony związek
+
+
