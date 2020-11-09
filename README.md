@@ -18,6 +18,16 @@
 - regresja wielokrotna
 - wyznaczanie indeksów
 
+## Analiza skupień
+### pliki:
+- wad Analiza Skupien.pdf
+- WadASkupien.Rmd
+### zawartość:
+- analiza hierarchiczna
+- macierz odległości
+- dendrogram podziału
+- silhouette, wss, gap_stat
+- analiza niehierarchiczna
 
 ## PE z biblioteką survey
 ### pliki:
