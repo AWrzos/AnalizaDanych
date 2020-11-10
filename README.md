@@ -29,6 +29,16 @@
 - silhouette, wss, gap_stat
 - analiza niehierarchiczna
 
+## Analiza log-liniowa
+### pliki:
+- logliniowa.pdf
+- logliniowa.Rmd
+### zawartość:
+- budowa hierarchiczna modelu
+- poziom dopasowania
+- interpretacja parametrów
+- wnioski, dot. stosowania używek przez licealistów
+
 ## PE z biblioteką survey
 ### pliki:
 - PE_survey.pdf
